@@ -32,15 +32,16 @@ public class BlueMapIntegration {
 
     public void onEnable(BlueMapAPI blueMapAPI) {
         this.blueMapAPI = blueMapAPI;
-        Bukkit.getScheduler().runTask(BlueBridgeCore.getInstance(), () -> {
+
+        Bukkit.getAsyncScheduler().runNow(BlueBridgeCore.getInstance(), task -> {
             BlueBridgeCore.getInstance().updateConfig();
             BlueBridgeCore.getInstance().reloadAddons();
             createMarkerSets();
             reloadExclusions();
             UpdateTask.worlds.clear();
             UpdateTask.resetLastSnapshots();
-            for (World bukkitWorld : Bukkit.getWorlds()) {
-                UUID uuid = bukkitWorld.getUID();
+            for (World world : Bukkit.getWorlds()) {
+                UUID uuid = world.getUID();
                 blueMapAPI.getWorld(uuid).ifPresent(blueMapWorld -> UpdateTask.worlds.put(uuid, blueMapWorld));
             }
             BlueBridgeCore.getInstance().addAllActiveRegions();
@@ -177,6 +178,4 @@ public class BlueMapIntegration {
     private boolean isExcluded(String addon, String map){
         return excludedMaps.getOrDefault(addon, Collections.emptyList()).contains(map);
     }
-
-
 }

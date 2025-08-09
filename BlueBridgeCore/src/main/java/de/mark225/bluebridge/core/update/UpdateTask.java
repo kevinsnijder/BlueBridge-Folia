@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 public class UpdateTask extends BukkitRunnable {
 
@@ -34,7 +35,12 @@ public class UpdateTask extends BukkitRunnable {
     public static synchronized void createAndSchedule(boolean instant) {
         if (currentTask == null && !locked) {
             currentTask = new UpdateTask();
-            currentTask.runTaskLater(BlueBridgeCore.getInstance(), instant ? 0L : BlueBridgeConfig.updateInterval());
+
+            long delayTicks = instant ? 0L : BlueBridgeConfig.updateInterval();
+
+            Bukkit.getAsyncScheduler().runDelayed(BlueBridgeCore.getInstance(), task -> {
+                currentTask.run();
+            }, delayTicks, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -51,12 +57,12 @@ public class UpdateTask extends BukkitRunnable {
         List<BlueBridgeAddon> addons = AddonRegistry.getIfActive(false);
         ConcurrentMap<String, ConcurrentMap<String, RegionSnapshot>> newSnapshots = new ConcurrentHashMap<>();
         for (BlueBridgeAddon addon : addons) {
-            if(addon.supportsAsync()) continue;
+            if (addon.supportsAsync()) continue;
             collectSnapshots(addon, newSnapshots);
         }
-        Bukkit.getScheduler().runTaskAsynchronously(BlueBridgeCore.getInstance(), () ->{
+        Bukkit.getAsyncScheduler().runNow(BlueBridgeCore.getInstance(), task -> {
             for (BlueBridgeAddon addon : addons) {
-                if(!addon.supportsAsync()) continue;
+                if (!addon.supportsAsync()) continue;
                 collectSnapshots(addon, newSnapshots);
             }
             doUpdate(newSnapshots);

@@ -15,9 +15,10 @@ public class BlueBridgeUtils {
     }
 
     public static int colorToInt(Color color) {
-        return (((int) (color.getAlpha() * 255) & 0xFF) << 24) |
-                ((color.getRed() & 0xFF) << 16) |
-                ((color.getGreen() & 0xFF) << 8) |
-                ((color.getBlue() & 0xFF));
+        int a = (int) (color.getAlpha() * 255) & 0xFF;
+        int r = (int) (color.getRed() * 255) & 0xFF;
+        int g = (int) (color.getGreen() * 255) & 0xFF;
+        int b = (int) (color.getBlue() * 255) & 0xFF;
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 }

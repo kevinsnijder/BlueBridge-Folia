@@ -7,6 +7,8 @@ import de.mark225.bluebridge.core.bluemap.BlueMapIntegration;
 import de.mark225.bluebridge.core.config.BlueBridgeConfig;
 import de.mark225.bluebridge.core.update.UpdateTask;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 
 import java.util.UUID;
 
@@ -34,7 +36,6 @@ public class BlueBridgeCore extends JavaPlugin {
         BlueMapAPI.onDisable(blueMapIntegration::onDisable);
     }
 
-
     public void updateConfig() {
         saveDefaultConfig();
         reloadConfig();
@@ -52,8 +53,13 @@ public class BlueBridgeCore extends JavaPlugin {
 
     public void addAllActiveRegions() {
         for (BlueBridgeAddon addon : AddonRegistry.getIfActive(true)) {
-            for (UUID world : UpdateTask.worlds.keySet()) {
-                blueMapIntegration.addOrUpdate(addon.fetchSnapshots(world).values());
+            for (UUID worldUUID : UpdateTask.worlds.keySet()) {
+                World world = Bukkit.getWorld(worldUUID);
+                if (world == null) continue;
+
+                Bukkit.getScheduler().runTask(this, () -> {
+                    blueMapIntegration.addOrUpdate(addon.fetchSnapshots(worldUUID).values());
+                });
             }
         }
     }
@@ -69,6 +75,4 @@ public class BlueBridgeCore extends JavaPlugin {
     public BlueMapIntegration getBlueMapIntegration() {
         return blueMapIntegration;
     }
-
-
 }
